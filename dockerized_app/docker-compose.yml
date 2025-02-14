@@ -2,16 +2,16 @@ version: "3.9"
 services:
   db:
     image: mysql/mysql-server:latest
+    restart: unless-stopped
     environment:
       - MYSQL_ROOT_HOST=%
       - MYSQL_ROOT_PASSWORD=password
-    ports:
-      - "3306:3306" # Expose port for external access
     expose:
       - "3306" # Internal access within the Docker network
     container_name: antcat-db
     volumes:
       - ./sql-data:/docker-entrypoint-initdb.d
+      - /mnt/volume_sfo3_01/mysql:/var/lib/mysql
     networks:
       - antcat-network
 
@@ -21,6 +21,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    restart: unless-stopped
     environment:
       DB_USERNAME: root
       DB_PASSWORD: password
@@ -34,11 +35,26 @@ services:
       - ../config/server.yml.example:/app/config/server.yml
     ports:
       - "8080:8080"
+    expose:
+      - "8080"
     container_name: antcat-app
     user: antcat
     stdin_open: true
     tty: true
     command: ["/bin/bash", "-c", "dockerized_app/startup.sh"]
+    networks:
+      - antcat-network
+
+  web:
+    image: nginx:latest
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
     networks:
       - antcat-network
 

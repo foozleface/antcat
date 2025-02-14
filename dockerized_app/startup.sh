@@ -1,5 +1,6 @@
 # Remove any pre-existing PID files
 rm -rf /app/app/tmp/pids/server.pid
+rm -f /app/tmp/pids/server.pid
 
 cd /app
 bundle install --path=vendor/bundle
